@@ -20,7 +20,7 @@ dnf search ceph
 Install dependencies (choose the release name (pacific, quincy, reef, etc.) based on what is available)
 ```
 dnf install -y centos-release-ceph-quincy
-dnf install -y podman cephadm ceph-common ceph-base
+dnf install -y podman cephadm ceph-common
 ```
 Bootstrap
 ```
