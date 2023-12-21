@@ -66,6 +66,7 @@ restorecon -Rv /
 ```
 SMB configuration
 ```
+smbpasswd -a root
 cat <<'EOL' > /etc/samba/smb.conf
 [cephfs]
     comment = ceph network share
