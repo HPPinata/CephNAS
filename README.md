@@ -45,6 +45,13 @@ Create Filesystem
 ```
 ceph fs new cephfs cephfs_meta cephfs_data --force
 ```
+Setup Snapshots (only changes between snapshots consume space, little overhead in most cases)  
+Snapshot every hour, keep 24 hourly, 7 daily and 6 weekly snapshots
+```
+ceph mgr module enable snap_schedule
+ceph fs snap-schedule add / 1h --fs=cephfs
+ceph fs snap-schedule retention add / 24h7d6w --fs=cephfs
+```
 Install Samba
 ```
 dnf install -y samba
