@@ -37,7 +37,7 @@ ceph dashboard set-grafana-api-url https://$(hostname -f):3000
 ```
 
 ## 2. WebUI
-- Navigate to https://HOSTANME:8443 (address is also displayed in termial output of step 1)
+- Navigate to https://HOSTANME.lan:8443 (address is also displayed in termial output of step 1)
 - Login with ``admin``//``ceph`` and set a new password
 - Create Storage Pools
   - cephfs_meta replicated
