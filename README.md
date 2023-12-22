@@ -31,6 +31,10 @@ Adopt all free devices (skip if more complex setup (with WAL, DB, etc.) is requi
 ```
 ceph orch apply osd --all-available-devices
 ```
+Windows (especially through a VPN) needs the FQDN as the API-URL, the default is just the hostname (ceph vs. ceph.lan)
+```
+ceph dashboard set-grafana-api-url https://$(hostname -f):3000
+```
 
 ## 2. WebUI
 - Navigate to https://HOSTANME:8443 (address is also displayed in termial output of step 1)
