@@ -35,6 +35,7 @@ Windows (especially through a VPN) needs the FQDN as the API-URL, the default is
 ```
 ceph dashboard set-grafana-api-url https://$(hostname -f):3000
 ceph dashboard set-prometheus-api-host http://$(hostname -f):9095
+ceph config set mgr mgr/prometheus/rbd_stats_pools "*"
 ```
 
 ## 2. WebUI
