@@ -3,7 +3,7 @@ Simple commands to set up a NAS with CephFS
 
 ## 0. Preparation
 System: Should work with any arm64 or x86_64 computer, preferrably with at least 4 storage devices  
-OS: RHEL based (Almalinux, Rockylinux), or at least supporting nm-manager, podman and SELinux
+OS: Fedora Server, or at least supporting nm-manager, podman and SELinux
 
 Privileges: Most (if not all) of the following commands require root privileges, ``sudo su`` before starting instead of prepending everything with sudo. Remember to ``exit`` after finishing
 
@@ -14,13 +14,8 @@ This configuration leaves DHCP in place and just adds an extra IP to the existin
 nmcli con mod "enp4s0" +ipv4.addresses "192.168.8.44/24"
 nmcli con up enp4s0
 ```
-Search through available versions, Reference: https://docs.ceph.com/en/latest/releases/
+Install dependencies
 ```
-dnf search ceph
-```
-Install dependencies (choose the release name (pacific, quincy, reef, etc.) based on what is available)
-```
-dnf install -y centos-release-ceph-quincy
 dnf install -y podman cephadm ceph-common
 ```
 Bootstrap
@@ -42,7 +37,7 @@ ceph config set mgr mgr/prometheus/rbd_stats_pools "*"
 - Navigate to https://HOSTANME.lan:8443 (address is also displayed in termial output of step 1)
 - Login with ``admin``//``ceph`` and set a new password
 - Create Storage Pools
-  - cephfs_meta replicated
+  - cephfs_meta replicated (SSDs preferred)
   - cephfs_data replicated or erasure coded (with ec_overwrites)
 - Create MDS (at least two)
 
