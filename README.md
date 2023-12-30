@@ -1,4 +1,4 @@
-# CephNAS_P
+# CephNAS
 Simple commands to set up a NAS with CephFS
 
 ## 0. Preparation
@@ -34,7 +34,7 @@ ceph config set mgr mgr/prometheus/rbd_stats_pools "*"
 ```
 
 ## 2. WebUI
-- Navigate to https://HOSTANME.lan:8443 (address is also displayed in termial output of step 1)
+- Navigate to https://HOSTNAME.lan:8443 (address is also displayed in termial output of step 1)
 - Login with ``admin``//``ceph`` and set a new password
 - Create Storage Pools
   - cephfs_meta replicated (SSDs preferred)
@@ -50,8 +50,8 @@ Setup Snapshots (only changes between snapshots consume space, little overhead i
 Snapshot every hour, keep 24 hourly, 7 daily and 6 weekly snapshots
 ```
 ceph mgr module enable snap_schedule
-ceph fs snap-schedule add / 1h --fs=cephfs
-ceph fs snap-schedule retention add / 24h7d6w --fs=cephfs
+ceph fs snap-schedule add /net 1h --fs=cephfs
+ceph fs snap-schedule retention add /net 24h7d6w --fs=cephfs
 ```
 Install Samba
 ```
@@ -62,16 +62,19 @@ Samba Firewall rules
 firewall-cmd --permanent --add-service=samba
 firewall-cmd --reload
 ```
-Mount CephFS on host (use IP address, command does not find host by DNS hostname)
+Mount CephFS on host
 ```
 mkdir /mnt/cephfs
-mount -t ceph admin@.cephfs=/ /mnt/cephfs -o mon_addr=192.168.8.44
-chown admin:admin /mnt/cephfs
-chmod 770 /mnt/cephfs
+mount -t ceph admin@.cephfs=/ /mnt/cephfs
+```
+Set share permissions
+```
+mkdir /mnt/cephfs/net /mnt/cephfs/prox
+chown admin:admin /mnt/cephfs/net
 ```
 SELinux context for SMB share (repeat with other paths for additional mounts)
 ```
-semanage fcontext -at samba_share_t '/mnt/cephfs(/.*)?'
+semanage fcontext -at samba_share_t '/mnt/cephfs/net(/.*)?'
 restorecon -Rv /
 ```
 SMB configuration
@@ -80,7 +83,7 @@ smbpasswd -a admin
 cat <<'EOL' > /etc/samba/smb.conf
 [cephfs]
     comment = ceph network share
-    path = /mnt/cephfs
+    path = /mnt/cephfs/net
     read only = no
     inherit owner = yes
     inherit permissions = yes
@@ -92,6 +95,6 @@ cat <<'EOL' | crontab -
 SHELL=/bin/bash
 BASH_ENV=/etc/profile
 
-@reboot until mountpoint -q /mnt/cephfs/; do mount -t ceph admin@.cephfs=/ /mnt/cephfs -o mon_addr=192.168.8.44; sleep 10; done; systemctl start smb
+@reboot until mountpoint -q /mnt/cephfs/; do mount -t ceph admin@.cephfs=/ /mnt/cephfs; sleep 10; done; systemctl start smb
 EOL
 ```
