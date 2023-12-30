@@ -66,6 +66,8 @@ Mount CephFS on host (use IP address, command does not find host by DNS hostname
 ```
 mkdir /mnt/cephfs
 mount -t ceph admin@.cephfs=/ /mnt/cephfs -o mon_addr=192.168.8.44
+chown admin:admin /mnt/cephfs
+chmod 770 /mnt/cephfs
 ```
 SELinux context for SMB share (repeat with other paths for additional mounts)
 ```
@@ -74,7 +76,7 @@ restorecon -Rv /
 ```
 SMB configuration
 ```
-smbpasswd -a root
+smbpasswd -a admin
 cat <<'EOL' > /etc/samba/smb.conf
 [cephfs]
     comment = ceph network share
