@@ -24,6 +24,7 @@ cephadm bootstrap --cluster-network 192.168.8.0/24 --mon-ip 192.168.8.44 --initi
 ```
 Adopt all free devices (skip if more complex setup (with WAL, DB, etc.) is required)
 ```
+cephadm shell
 ceph orch apply osd --all-available-devices
 ```
 Windows (especially through a VPN) needs the FQDN as the API-URL, the default is just the hostname (ceph vs. ceph.lan)
@@ -52,6 +53,7 @@ Snapshot every hour, keep 24 hourly, 7 daily and 6 weekly snapshots
 ceph mgr module enable snap_schedule
 ceph fs snap-schedule add /net 1h --fs=cephfs
 ceph fs snap-schedule retention add /net 24h7d6w --fs=cephfs
+exit
 ```
 Install Samba
 ```
