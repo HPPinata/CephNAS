@@ -5,7 +5,7 @@ Simple commands to set up a NAS with CephFS
 System: Should work with any arm64 or x86_64 computer, preferrably with at least 4 storage devices  
 OS: Fedora Server, or at least supporting nm-manager, podman and SELinux
 
-Privileges: Most (if not all) of the following commands require root privileges, ``sudo su`` before starting instead of prepending everything with sudo. Remember to ``exit`` after finishing
+Privileges: Most (if not all) of the following commands require root privileges, ``sudo su`` before starting instead of prepending everything with sudo.
 
 ## 1. Cephadm bootstap
 Set static IP (adjust to the correct interface name and subnet, skip if server IP is already static)  
@@ -28,13 +28,14 @@ ceph orch apply osd --all-available-devices
 ```
 Windows (especially through a VPN) needs the FQDN as the API-URL, the default is just the hostname (ceph vs. ceph.lan)
 ```
+hostname -f
 ceph dashboard set-grafana-api-url https://$(hostname -f):3000
 ceph dashboard set-prometheus-api-host http://$(hostname -f):9095
 ceph config set mgr mgr/prometheus/rbd_stats_pools "*"
 ```
 
 ## 2. WebUI
-- Navigate to https://HOSTNAME.lan:8443 (address is also displayed in termial output of step 1)
+- Navigate to https://HOSTNAME.DOMAIN:8443 (address is also displayed in termial output of step 1)
 - Login with ``admin``//``ceph`` and set a new password
 - Create Storage Pools
   - cephfs_meta replicated (SSDs preferred)
@@ -76,6 +77,7 @@ SELinux context for SMB share (repeat with other paths for additional mounts)
 ```
 semanage fcontext -at samba_share_t '/mnt/cephfs/net(/.*)?'
 restorecon -Rv /
+umount /mnt/cephfs
 ```
 SMB configuration
 ```
@@ -100,11 +102,11 @@ Wants=ceph.target
 [Service]
 Type=oneshot
 ExecStart=bash -c 'until mountpoint -q /mnt/cephfs/; do mount -t ceph admin@.cephfs=/ /mnt/cephfs; sleep 10; done; systemctl start smb'
-ExecStop=bash -c 'systemctl stop smb && umount /mnt/cephfs'
+ExecStop=bash -c 'systemctl stop smb; while mountpoint -q /mnt/cephfs/; do umount /mnt/cephfs; sleep 1; done'
 RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
 EOL
-systemctl enable /etc/systemd/system/cephnas.service
+systemctl enable --now /etc/systemd/system/cephnas.service
 ```
