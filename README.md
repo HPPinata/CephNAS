@@ -89,12 +89,22 @@ cat <<'EOL' > /etc/samba/smb.conf
     inherit permissions = yes
 EOL
 ```
-Mount CephFS on boot and start SMB after (fstab not viable, CephFS is not up that early during boot)
+Mount CephFS on boot and start SMB (fstab not viable, CephFS is not up that early during boot)
 ```
-cat <<'EOL' | crontab -
-SHELL=/bin/bash
-BASH_ENV=/etc/profile
+cat <<'EOL' > /etc/systemd/system/cephnas.service
+[Unit]
+Description=Mount CephFS and start SMB
+After=ceph.target
+Wants=ceph.target
 
-@reboot until mountpoint -q /mnt/cephfs/; do mount -t ceph admin@.cephfs=/ /mnt/cephfs; sleep 10; done; systemctl start smb
+[Service]
+Type=oneshot
+ExecStart=bash -c 'until mountpoint -q /mnt/cephfs/; do mount -t ceph admin@.cephfs=/ /mnt/cephfs; sleep 10; done; systemctl start smb'
+ExecStop=bash -c 'systemctl stop smb && umount /mnt/cephfs'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
 EOL
+systemctl enable /etc/systemd/system/cephnas.service
 ```
