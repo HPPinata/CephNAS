@@ -11,7 +11,7 @@ Privileges: Most (if not all) of the following commands require root privileges,
 Set static IP (adjust to the correct interface name and subnet, skip if server IP is already static)  
 This configuration leaves DHCP in place and just adds an extra IP to the existing interface
 ```
-nmcli con mod "enp4s0" +ipv4.addresses "192.168.8.44/24"
+nmcli con mod "enp4s0" +ipv4.addresses "192.168.1.44/24"
 nmcli con up enp4s0
 ```
 Install dependencies
@@ -20,7 +20,7 @@ dnf install -y podman cephadm ceph-common
 ```
 Bootstrap
 ```
-cephadm bootstrap --cluster-network 192.168.8.0/24 --mon-ip 192.168.8.44 --initial-dashboard-user admin --initial-dashboard-password ceph --allow-fqdn-hostname --single-host-defaults
+cephadm bootstrap --cluster-network 192.168.1.0/24 --mon-ip 192.168.1.44 --initial-dashboard-user admin --initial-dashboard-password ceph --allow-fqdn-hostname --single-host-defaults
 ```
 Adopt all free devices (skip if more complex setup (with WAL, DB, etc.) is required)
 ```
