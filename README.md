@@ -39,20 +39,28 @@ ceph config set mgr mgr/prometheus/rbd_stats_pools "*"
 - Login with ``admin``//``ceph`` and set a new password
 - Create Storage Pools
   - cephfs_meta replicated (SSDs preferred)
-  - cephfs_data replicated or erasure coded (with ec_overwrites)
+  - cephfs_data_m replicated (SSDs preferred)
+  - cephfs_data_d erasure coded (with ec_overwrites)
 - Create MDS (at least two)
 
 ## 3. Samba
 Create Filesystem
 ```
-ceph fs new cephfs cephfs_meta cephfs_data --force
+ceph fs new cephfs cephfs_meta cephfs_data_m
+ceph fs add_data_pool cephfs cephfs_data_d
+```
+Create Subvolumes
+```
+ceph fs subvolume create cephfs net --pool_layout cephfs_data_d
+ceph fs subvolume create cephfs prox --pool_layout cephfs_data_d
+NET="$(ceph fs subvolume getpath cephfs net)"
 ```
 Setup Snapshots (only changes between snapshots consume space, little overhead in most cases)  
 Snapshot every hour, keep 24 hourly, 7 daily and 6 weekly snapshots
 ```
 ceph mgr module enable snap_schedule
-ceph fs snap-schedule add /net 1h --fs=cephfs
-ceph fs snap-schedule retention add /net 24h7d6w --fs=cephfs
+ceph fs snap-schedule add $NET 1h --fs=cephfs
+ceph fs snap-schedule retention add $NET 24h7d6w --fs=cephfs
 ```
 Install Samba
 ```
@@ -63,21 +71,15 @@ Samba Firewall rules
 firewall-cmd --permanent --add-service=samba
 firewall-cmd --reload
 ```
-Mount CephFS on host
+Mountpoint
 ```
-mkdir /mnt/cephfs
-mount -t ceph admin@.cephfs=/ /mnt/cephfs
-```
-Set share permissions
-```
-mkdir /mnt/cephfs/net /mnt/cephfs/prox
+mkdir -p /mnt/cephfs/net
 chown admin:admin /mnt/cephfs/net
 ```
 SELinux context for SMB share (repeat with other paths for additional mounts)
 ```
 semanage fcontext -at samba_share_t '/mnt/cephfs/net(/.*)?'
 restorecon -Rv /
-umount /mnt/cephfs
 ```
 SMB configuration
 ```
@@ -101,8 +103,8 @@ Wants=ceph.target
 
 [Service]
 Type=oneshot
-ExecStart=bash -c 'until mountpoint -q /mnt/cephfs/; do mount -t ceph admin@.cephfs=/ /mnt/cephfs; sleep 10; done; systemctl start smb'
-ExecStop=bash -c 'systemctl stop smb; while mountpoint -q /mnt/cephfs/; do umount /mnt/cephfs; sleep 1; done'
+ExecStart=bash -c 'until mountpoint -q /mnt/cephfs/net; do mount -t ceph admin@.cephfs=$(ceph fs subvolume getpath cephfs net) /mnt/cephfs/net; sleep 10; done; systemctl start smb'
+ExecStop=bash -c 'systemctl stop smb; while mountpoint -q /mnt/cephfs/net; do umount /mnt/cephfs/net; sleep 1; done'
 RemainAfterExit=yes
 
 [Install]
