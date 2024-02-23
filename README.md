@@ -59,8 +59,8 @@ Setup Snapshots (only changes between snapshots consume space, little overhead i
 Snapshot every hour, keep 24 hourly, 7 daily and 6 weekly snapshots
 ```
 ceph mgr module enable snap_schedule
-ceph fs snap-schedule add $NET 1h --fs=cephfs
-ceph fs snap-schedule retention add $NET 24h7d6w --fs=cephfs
+ceph fs snap-schedule add /volumes/_nogroup/net 1h --fs=cephfs
+ceph fs snap-schedule retention add /volumes/_nogroup/net 24h7d6w --fs=cephfs
 ```
 Install Samba
 ```
