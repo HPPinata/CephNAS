@@ -78,8 +78,10 @@ chown admin:admin /mnt/cephfs/net
 ```
 SELinux context for SMB share (repeat with other paths for additional mounts)
 ```
+mount -t ceph admin@.cephfs=$NET /mnt/cephfs/net
 semanage fcontext -at samba_share_t '/mnt/cephfs/net(/.*)?'
 restorecon -Rv /
+umount /mnt/cephfs/net
 ```
 SMB configuration
 ```
