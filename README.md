@@ -71,14 +71,11 @@ Samba Firewall rules
 firewall-cmd --permanent --add-service=samba
 firewall-cmd --reload
 ```
-Mountpoint
+SELinux context & permissions for SMB share
 ```
 mkdir -p /mnt/cephfs/net
-chown admin:admin /mnt/cephfs/net
-```
-SELinux context for SMB share (repeat with other paths for additional mounts)
-```
 mount -t ceph admin@.cephfs=$NET /mnt/cephfs/net
+chown -R admin:admin /mnt/cephfs/net
 semanage fcontext -at samba_share_t '/mnt/cephfs/net(/.*)?'
 restorecon -Rv /
 umount /mnt/cephfs/net
